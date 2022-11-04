@@ -168,13 +168,13 @@ Previous cartographic investigations have been carried out mostly using traditio
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Materials and Methods}
 
-The study area encompasses the following spatial extent: 59,5°-74°W, 0°-12.5°N (Fig. 1). Topographic, geophysical, seismic and geologic sources of data were used in this study presenting a multi-disciplinary cartographic analysis. The topographic data were collected through the General Bathymetric Chart of the Oceans (GEBCO) open access repository with NetCDF raster grid \cite{GEBCO} which presents the most comprehensive data for topography and bathymetry of the Earth \cite{Schenke}. GEBCO data are widely used in geosciences due to its unprecedented resolution and precision \citep{Mcmichael,Lemenkova2020c,Lemenkova2022c,Cortina}. 
+The study area encompasses the spatial extent of 59,5°-74°W, 0°-12.5°N (Figure \ref{fig1}). The topographic, geophysical, seismic and geologic data sources were used to present a multi-disciplinary cartographic analysis of Venezuela. The topographic data were collected through the General Bathymetric Chart of the Oceans (GEBCO) open access repository with NetCDF raster grid \cite{GEBCO} which presents the most comprehensive data for topography and bathymetry of the Earth \cite{Schenke}. The GEBCO data grid is widely used in geosciences due to its unprecedented resolution and precision \citep{Mcmichael,Lemenkova2020c,Lemenkova2022c,Cortina}. 
 
-The geological data (Fig. 2 and 3) have been plotted using the QGIS, because this open source software is compatible with the ArcGIS data format that have been used in geologic maps as a .shp vector layers. The visualization of these maps followed the traditional mapping process of the QGIS \cite{Lemenkova2022a}. In the first stage, vector layers of the geologic provinces and outcrops were visualized with in a Graphical User Interface (GUI). In the second stage, the study area was designated using the overlay of the Digital Chart of the World (DCW), which is a comprehensive 1:1,000,000 scale vector base map uploaded into the QGIS project. 
+The geological data (Figures \ref{fig2} and \ref{fig3}) have been plotted using the QGIS, because this open source software is compatible with the ArcGIS data format that have been used in geologic maps as a .shp vector layers. The visualization of these maps followed the traditional mapping process of the QGIS \cite{Lemenkova2022a}. In the first stage, vector layers of the geologic provinces and outcrops were visualized with in a Graphical User Interface (GUI). In the second stage, the study area was designated using the overlay of the Digital Chart of the World (DCW), which is a comprehensive 1:1,000,000 scale vector base map uploaded into the QGIS project. 
 
-Maps of topographic, seismic and geophysical data (Figs. 1, 4–7) were made using scripting technique of the GMT \cite{Wessel} following the existing examples of scripting \citep{Lemenkova2019a,Lemenkova2022b}. The methodological workflow included 5 algorithms by GMT codes as follows: 
+Maps of topographic, seismic and geophysical data (Figures \ref{fig1}, \ref{fig4}, \ref{fig5}, \ref{fig6} and \ref{fig7} were made using scripting technique of the GMT \cite{Wessel} following the existing examples of scripting \citep{Lemenkova2019a,Lemenkova2022b}. The methodological workflow included 5 algorithms by GMT codes as follows: 
 
-\begin{lstlisting}[language=bash, caption=\textbf{GMT code used for plotting Fig. \ref{fig1} (topographic map)}]
+\begin{lstlisting}[language=bash, caption=\textbf{GMT code used for plotting Figure \ref{fig1} (topographic map)}]
 #!/bin/sh
 # Purpose: shaded relief grid raster map from the GEBCO dataset (here: Venezuela)
 # GMT modules: gmtset, gmtdefaults, grdcut, makecpt, grdimage, psscale, grdcontour, psbasemap, gmtlogo, psconvert
@@ -254,9 +254,9 @@ gmt psconvert Topography_VE.ps -A0.5c -E720 -Tj -Z
 
 Prior to data visualization and mapping, the GMT scripts were written using its syntax and organized in the Xcode environment. The cocding language of GMT was used during scripting and several modules applied for plotting various cartographic elements. the area of interest was first selected and cut from the GEBCO grid using the following code: $'gmt grdcut GEBCO\_2019.nc -R286/300.5/0/12.5 -Gve\_relief.nc'.$
 
-Following the first step, all other the substantial cartographic elements (image visualized in selected color palette, grid, clipped insert region in the globe map, coastlines, borders, rivers, barlegend, scale bar, text annotations and time stamp) were added in a script using the following GMT modules: psbasemap, grdimage, psscale, pstext, psclip, grdcontour. The technique of scripting was applied from the existing detailed descriptions \cite{Lemenkova2021b}. For example, the 'grdcontour' module was used for computing, modelling and visualizing topographic isolines using quantitative DEM data as follows: $'gmt grdcontour ve\_relief1.nc -R -J -C1000 -Wthinner,darkbrown -O -K >> \$ps'$. The purpose of the geoid visualization (Fig. 4) in relation to geophysical differentiation was to investigate how gravity values respond to the effects of topographic elevation and bathymetric depressions. Data on geoid undulations have been collected from the EGM2008 \cite{Pavlis}. 
+Following the first step, all other the substantial cartographic elements (image visualized in selected color palette, grid, clipped insert region in the globe map, coastlines, borders, rivers, barlegend, scale bar, text annotations and time stamp) were added in a script using the following GMT modules: psbasemap, grdimage, psscale, pstext, psclip, grdcontour. The technique of scripting was applied from the existing detailed descriptions \cite{Lemenkova2021b}. For example, the 'grdcontour' module was used for computing, modelling and visualizing topographic isolines using quantitative DEM data as follows: $'gmt grdcontour ve\_relief1.nc -R -J -C1000 -Wthinner,darkbrown -O -K >> \$ps'$. The purpose of the geoid visualization (Figure \ref{fig4}) in relation to geophysical differentiation was to investigate how gravity values respond to the effects of topographic elevation and bathymetric depressions. Data on geoid undulations have been collected from the EGM2008 \cite{Pavlis}. 
 
-\begin{lstlisting}[language=bash, caption=\textbf{GMT code used for plotting Fig. \ref{fig4} (geoid modelling)}]
+\begin{lstlisting}[language=bash, caption=\textbf{GMT code used for plotting Figure \ref{fig4} (geoid modelling)}]
 #!/bin/sh
 # Purpose: geoid of Venezuela
 # GMT modules: gmtset, gmtdefaults, grdcut, makecpt, grdimage, psscale, grdcontour, psbasemap, gmtlogo, psconvert
@@ -561,21 +561,25 @@ The distribution of the earthquakes and seismicity of the Venezuela and the Trin
 
 \subsection{Summary}
 
-This study evaluated machine learning scripting cartographic methods of GMT to assess geophysical and geologic correspondence for seismically active region of selected countries in northern Southern America – Venezuela and the Trinidad and Tobago, the Caribbean. The study applied several high-resolution geophysical, topographic and geological datasets using GEBCO, EGM-2008, remote sensing gravity grids and IRIS seismic data. The results were corresponding and supporting previous interdisciplinary studies of geological and geophysical methods of gravity measurements, active seismic observations and earthquake monitoring in Venezuela and the Caribbean Sea basin \citep{Guenther,Schmitz2008}.  
+In this paper, we have proposed two algorithms of geophysical mapping of Venezuela which include GMT based scripts and traditional plotting using QGIS aimed at geohazard risk analysis of Venezuela. Geohazard investigation and risk assessment require advanced methods of mapping which are based on programming algorithms, as demonstrated in this paper. The operative use of the correctly and effectively plotted maps, along with tabular data, supports reasonable and argued recommendations aimed at prevention and mitigation of earthquake hazard risks and seismically active region, such as South American Andes. The algorithms of GMT enabled improved performance of cartographic workflow than conventional approaches using the software. 
 
-The study presented improved machine-based mapping workflow and thus contributes to the regional studies of the eastern Caribbean and Venezuela. Of the GMT models tested, several code snippets are presented as a demonstration of the technical possibilities of toolset. The results showed the best cartographic performance and demonstrate the advantage of automating processing of geophysical datasets over the GIS. The motivation to use multi-source geophysical, geologic, seismic and topographic data was to allow for comparative analysis of interplay among the processes and phenomena. The tectonic evolution of the Caribbean Sea basin largely affects its geological setting that can be tracked in geophysical data and indicate high seismicity in the Andes pointing at earthquake risk.
+We demonstrated technical advantages of programming approaches in cartography, which include cartographic scripting, a rapidly developing branch of geo-information. Due to the high degree of automation, scripting is the best technical cartographic solution for seismic mapping, because it enables rapid machine-based processing of data, which is useful for prognosis, predictive mapping, risk assessment and hazard visualization in real time regime. Automation enables to process big datasets rapidly and effectively using multi-source heterogeneous data. Besides, that, known advantages of scripting cartography include machine-based graphics that results in an aesthetically refined plotting by GMT. 
 
-Since eastern Caribbean is a tectonically complex area which includes a subduction zone, island arc and active volcanoes \cite{Ambeh}, regional analysis and visualization of the varied setting was performed. Specifically, high seismicity was detected in the north-west of Venezuela, and north-east region of Trinidad and Tobago, which is consistent with geologic structure associated with tectonic setting, and related movements of the Caribbean Plate subduction. Although continued research is needed to improve earthquake monitoring in Venezuela region, this study presented a contribution to seismic studies in the Caribbean and South America, showing earthquakes detected according to the IRIS database based on the 25-year time span (1997-2021). 
-	
-Scripting cartography is currently rapidly developing and will remain the best technical approach to map seismically active regions in real time regime in order to perform prognosis, predictive mapping, risk assessment and hazard visualization. The best known advantages of scripting cartography include automatization that enables to process big datasets rapidly and effectively using multi-source heterogeneous data in massive volumes. The second advantage consists in the machine based graphics that results in aesthetically fine plotting. Besides the technical advantages of the presented scripting approach of GMT, a better understanding of geological and tectonic factors affecting seismicity and regulating the appearance, magnitude and focal depth of the earthquakes is critical to seismically active regions, such as the Caribbean and Venezuela and geologic risk assessment in South America.
+Scripting cartographic methods of GMT were addressed to evaluate the geophysical and geologic correspondence in a seismically active region of Venezuela and the Caribbean Sea basin. We used high-resolution geophysical, topographic and geological datasets, such as GEBCO, EGM-2008 for geoid, gravity grids and seismic data obtained from IRIS. The results were corresponding and supporting previous studies on geological and geophysical methods of gravity measurements, seismic observations and earthquake monitoring in Venezuela and the surroundings \citep{Guenther,Schmitz2008}.  
 
-\subsection{Highlights for public administration, city management and urban planning}
+The study presented the machine-based mapping workflow which contributed to the regional studies of the eastern Caribbean and Venezuela. The GMT code snippets are presented in the GitHub repository, as a demonstration of the technical possibilities of this toolset. The results showed optimised cartographic performance and demonstrated the advantages of the automating processing of geophysical datasets. The multi-source geophysical, geologic, seismic and topographic data were used for comparative analysis of the geophysical processes. The tectonic evolution of the Caribbean Sea basin largely affected its geological setting that can be tracked in relevant geophysical data which indicate high seismicity in the Andes and high earthquake risk.
+
+Since eastern Caribbean is a tectonically complex area which includes a subduction zone, island arc and active volcanoes \cite{Ambeh}, regional analysis and visualization of the varied setting was performed. Specifically, high seismicity was detected in the north-west of Venezuela, and north-east region of Trinidad and Tobago, which is consistent with geologic structure associated with tectonic setting, and related movements of the Caribbean Plate subduction. Although continued research is needed to improve earthquake monitoring in Venezuela region, this study presented a contribution to the seismic studies in the Caribbean and South America, showing earthquakes detected according to the IRIS database based on the 25-year time span (1997-2021). 
+
+A better understanding of geological and tectonic factors affecting seismicity and regulating the appearance, magnitude and focal depth of the earthquakes is critical to seismically active regions, such as the Caribbean and Venezuela. Practical applications of geologic risk assessment in South America include the use of information by public administration, city management and urban planning for environmental management and hazard risk mitigation and management in regions prone to geological hazards, such as Venezuela. 
+
+\subsection{Highlights}
 
 \begin{enumerate}
-  \item The region of Venezuela is at high risk of seismicity and earthquakes, as both countries are located in the zone of the South America and Caribbean tectonic plates collision and Andean orogeny. 
-  \item Geological disasters from high seismicity are a function of hazard, exposure, and vulnerability of people at risk due to the location in the vicinity of earthquakes. This requires detailed studies and visualization of regional geophysical setting in the country.
-  \item Integration and visualisation of the multi-source data supports geophysical investigations aimed to prevent and evaluate risks of geophysical hazards, because they provide detailed insights into the environmental, geological and topographic settings of Venezuela and supports complex spatial analysis in this seismically active region of South America. 
-  \item Technically, geophysical and geological analysis of regions of seismic risk can be performed using combination of scripting GMT and GIS for effective cartographic data analysis in real-time regime for hazard mapping and spatial analysis of the regions at risk.
+  \item \textbf{Region} The region of Venezuela is at high risk of seismicity and earthquakes, as both countries are located in the zone of the South America and Caribbean tectonic plates collision and Andean orogeny. This requires spatial analysis of the regions at risk.
+  \item \textbf{Geohazards} Risk assessment of geophysical hazards is based on integration and visualisation of the multi-source data which provide detailed insights into the environmental and geological settings of Venezuela and support complex investigations in a seismically active regions of South America. 
+    \item \textbf{Data} Geological disasters are related to high seismicity, exposure to hazards, and vulnerability of people at risk. This requires complex detailed studies summarising these factors and visualising regional geophysical setting.
+   \item \textbf{Methods} Combination of scripting GMT and GIS is effective for cartographic data analysis. It ensures multi-format data processing for hazard mapping, geophysical and geological visualization, and preventing and evaluating the seismic hazards.
 \end{enumerate}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -583,24 +587,27 @@ Scripting cartography is currently rapidly developing and will remain the best t
 
 \dataavailability{Yes, the GitHub repository of the author with available GMT scripts: \href{https://github.com/paulinelemenkova/Mapping_Venezuela_GMT_Scripts}{https://github.com/paulinelemenkova/Mapping\_Venezuela\_GMT\_Scripts}} 
 
-\acknowledgments{The author is thankful to the anonymous reviewers for reading and commenting on this study.}
+\acknowledgments{The authors are thankful to the anonymous reviewers for reading and commenting on this study.}
 
-\conflictsofinterest{The author declares no conflict of interest.} 
+\conflictsofinterest{The authors declare no conflict of interest.} 
 
 \abbreviations{Abbreviations}{
 The following abbreviations are used in this manuscript:\\
 
 \noindent 
 \begin{tabular}{@{}ll}
+CSV & comma-separated values \\
+DCW & Digital Chart of the World \\
+EGM & Earth Gravitational Models \\ 
+GEBCO & The General Bathymetric Chart of the Oceans \\
 GIS & Geographic Information System \\
 GMT & Generic Mapping Tools \\
+GUI & Graphical User Interface \\
 QGIS & Quantum GIS \\
-GEBCO & The General Bathymetric Chart of the Oceans \\
-EGM & Earth Gravitational Models \\ 
 IRIS & Incorporated Research Institutions for Seismology \\
+NetCDF & Network Common Data Form \\
+NGDC & National Geophysical Data Center \\
 USGS & United States Geological Survey \\
-CSV & comma-separated values \\
-NGDC & National Geophysical Data Center
 \end{tabular}}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
