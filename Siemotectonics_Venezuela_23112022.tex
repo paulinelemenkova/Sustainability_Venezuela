@@ -176,345 +176,15 @@ The study area encompasses the spatial extent of 59,5°-74°W, 0°-12.5°N (Figu
 
 The geological data (Figures \ref{fig2} and \ref{fig3}) have been plotted using the QGIS, because this open source software is compatible with the ArcGIS data format that have been used in geologic maps as a .shp vector layers. The visualization of these maps followed the traditional mapping process of the QGIS \cite{Lemenkova2022a}. In the first stage, vector layers of the geologic provinces and outcrops were visualized with in a Graphical User Interface (GUI). In the second stage, the study area was designated using the overlay of the Digital Chart of the World (DCW), which is a comprehensive 1:1,000,000 scale vector base map uploaded into the QGIS project. 
 
-Maps of topographic, seismic and geophysical data (Figures \ref{fig1}, \ref{fig4}, \ref{fig5}, \ref{fig6} and \ref{fig7} were made using scripting technique of the GMT \cite{Wessel} following the existing examples of scripting \citep{Lemenkova2022b,Lemenkova202217}. The methodological workflow included 5 algorithms by GMT codes as follows: 
-
-\begin{lstlisting}[language=bash, caption=\textbf{GMT code used for plotting Figure \ref{fig1} (topographic map)}]
-#!/bin/sh
-# Purpose: shaded relief grid raster map from the GEBCO dataset (here: Venezuela)
-# GMT modules: gmtset, gmtdefaults, grdcut, makecpt, grdimage, psscale, grdcontour, psbasemap, gmtlogo, psconvert
-# http://soliton.vm.bytemark.co.uk/pub/cpt-city/arendal/tn/arctic.png.index.html
-# GMT set up
-gmt set FORMAT_GEO_MAP=dddF \
-# Overwrite defaults of GMT
-gmtdefaults -D > .gmtdefaults
-#chsh -s /bin/bash
-chsh -s /bin/zsh
-gmt grdcut GEBCO_2019.nc -R286/300.5/0/12.5 -Gve_relief.nc
-gmt grdcut ETOPO1_Ice_g_gmt4.grd -R286/300.5/0/12.5 -Gve_relief1.nc
-gdalinfo ve_relief.nc -stats
-# Minimum=-4947.963, Maximum=5535.625, Mean=162.220, StdDev=788.097
-# create mask of vector layer from the DCW of country's polygon
-gmt pscoast -R286/300.5/0/12.5 -Dh -M -EVE > ve.txt
-# Make color palette
-gmt makecpt -Carctic.cpt > pauline.cpt
-# Generate a file
-ps=Topography_VE.ps
-# Make background transparent image
-gmt grdimage ve_relief.nc -Cpauline.cpt -R286/300.5/0/12.5 -JM6i -P -I+a15+ne0.75 -t20 -Xc -K > $ps
-# Add isolines
-gmt grdcontour ve_relief1.nc -R -J -C500 -W0.1p -O -K >> $ps
-# Add coastlines, borders, rivers
-gmt pscoast -R -J -P \
-    -Ia/thinner,blue -Na -N1/thickest,darkred -W0.1p -Df -O -K >> $ps
-# CLIPPING
-# 1. Start: clip the map by mask to only include country
-gmt psclip -R286/300.5/0/12.5 -JM6.0i ve.txt -O -K >> $ps
-# 2. create map within mask
-# Add raster image
-gmt grdimage ve_relief.nc -Cpauline.cpt -R286/300.5/0/12.5 -JM6.0i -I+a15+ne0.75 -Xc -P -O -K >> $ps
-# Add isolines
-gmt grdcontour ve_relief1.nc -R -J -C1000 -Wthinner,darkbrown -O -K >> $ps
-# Add coastlines, borders, rivers
-gmt pscoast -R -J \
-    -Ia/thinner,blue -Na -N1/thicker,tomato -W0.1p -Df -O -K >> $ps
-# 3: Undo the clipping
-gmt psclip -C -O -K >> $ps
-# Add color barlegend
-gmt psscale -Dg286/-1.0+w15.2c/0.4c+h+o0.0/0i+ml -R -J -Cpauline.cpt \
-    -Bg500a1000f100+l"Color scale 'arctic': global bathymetry/topography relief [-5000 to 4000, mixed, RGB, 110 segments]" \
-    -I0.2 -By+lm -O -K >> $ps    
-# Add grid
-gmt psbasemap -R -J \
-    --MAP_FRAME_AXES=WEsN \
-    --FORMAT_GEO_MAP=ddd:mm:ssF \
-    -Bpx4f2a2 -Bpyg4f2a2 -Bsxg4 -Bsyg2 \
-    -B+t"Topographic map of Venezuela, Trinidad and Tobago" -O -K >> $ps    
-# Add scalebar, directional rose
-gmt psbasemap -R -J \
-    -Lx12.7c/-2.2c+c50+w200k+l"Mercator projection. Scale: km"+f \
-    -UBL/-5p/-65p -O -K >> $ps
-# Texts
-gmt pstext -R -J -N -O -K \
--F+jTL+f10p,21,darkred+jLB+a-0 -Gwhite@60 >> $ps << EOF
-290.1 11.8 Peninsula
-EOF
-# insert map
-# Countries codes: ISO 3166-1 alpha-2. Continent codes AF (Africa), AN (Antarctica), AS (Asia), EU (Europe), OC (Oceania), NA (North America), or SA (South America). -EEU+ggrey
-gmt psbasemap -R -J -O -K -DjBL+w3.3c+stmp >> $ps
-read x0 y0 w h < tmp
-gmt pscoast --MAP_GRID_PEN_PRIMARY=thinner,white -Rg -JG293/6N/$w -Da -Gbrown -A5000 -Bg -Wfaint -ESA+gpeachpuff -EVE+gyellow -Slightsteelblue3 -O -K -X$x0 -Y$y0 >> $ps
-#gmt pscoast -Rg -JG12/5N/$w -Da -Gbrown -A5000 -Bg -Wfaint -ECM+gbisque -O -K -X$x0 -Y$y0 >> $ps
-gmt psxy -R -J -O -K -T  -X-${x0} -Y-${y0} >> $ps
-# Add GMT logo
-gmt logo -Dx6.2/-2.9+o0.1i/0.1i+w2c -O -K >> $ps
-# Add subtitle
-gmt pstext -R0/10/0/15 -JX10/10 -X0.5c -Y5.0c -N -O \
-    -F+f10p,Helvetica,black+jLB >> $ps << EOF
-2.3 13.3 SRTM/GEBCO 15 arc sec resolution global terrain model grid
-EOF
-# Convert to image file using GhostScript
-gmt psconvert Topography_VE.ps -A0.5c -E720 -Tj -Z
-\end{lstlisting}
-
-Prior to data visualization and mapping, the GMT scripts were written using its syntax and organized in the Xcode environment. The cocding language of GMT was used during scripting and several modules applied for plotting various cartographic elements. the area of interest was first selected and cut from the GEBCO grid using the following code: $'gmt grdcut GEBCO\_2019.nc -R286/300.5/0/12.5 -Gve\_relief.nc'.$
+Maps of topographic, seismic and geophysical data (Figures \ref{fig1}, \ref{fig4}, \ref{fig5}, \ref{fig6} and \ref{fig7} were made using scripting technique of the GMT \cite{Wessel} following the existing examples of scripting \citep{Lemenkova2022b,Lemenkova202217}. The methodological workflow included 5 algorithms by GMT codes \hl{is presented in the Appendix section of this article.} Prior to data visualization and mapping, the GMT scripts were written using its syntax and organized in the Xcode environment. The cocding language of GMT was used during scripting and several modules applied for plotting various cartographic elements. the area of interest was first selected and cut from the GEBCO grid using the following code: $'gmt grdcut GEBCO\_2019.nc -R286/300.5/0/12.5 -Gve\_relief.nc'.$
 
 Following the first step, all other the substantial cartographic elements (image visualized in selected color palette, grid, clipped insert region in the globe map, coastlines, borders, rivers, barlegend, scale bar, text annotations and time stamp) were added in a script using the following GMT modules: psbasemap, grdimage, psscale, pstext, psclip, grdcontour. The technique of scripting was applied from the existing detailed descriptions \cite{Lemenkova2021b}. For example, the 'grdcontour' module was used for computing, modelling and visualizing topographic isolines using quantitative DEM data as follows: $'gmt grdcontour ve\_relief1.nc -R -J -C1000 -Wthinner,darkbrown -O -K >> \$ps'$. The purpose of the geoid visualization (Figure \ref{fig4}) in relation to geophysical differentiation was to investigate how gravity values respond to the effects of topographic elevation and bathymetric depressions. Data on geoid undulations have been collected from the EGM2008 \cite{Pavlis}. 
 
-\begin{lstlisting}[language=bash, caption=\textbf{GMT code used for plotting Figure \ref{fig4} (geoid modelling)}]
-#!/bin/sh
-# Purpose: geoid of Venezuela
-# GMT modules: gmtset, gmtdefaults, grdcut, makecpt, grdimage, psscale, grdcontour, psbasemap, gmtlogo, psconvert
-# http://soliton.vm.bytemark.co.uk/pub/cpt-city/kst/tn/33_blue_red.png.index.html
-# GMT set up
-gmt set FORMAT_GEO_MAP=dddF \
-# Overwrite defaults of GMT
-gmtdefaults -D > .gmtdefaults
-gmt grdconvert n00w90/w001001.adf geoid_02.grd
-gdalinfo geoid_02.grd -stats
-# Minimum=-70.856, Maximum=32.958, Mean=-24.768, StdDev=19.081
-# Generate a color palette table from grid
-gmt makecpt -C33_blue_red.cpt -T-55/25 > colors.cpt
-# Generate a file
-ps=Geoid_VE.ps
-gmt grdimage geoid_02.grd -Ccolors.cpt -R286/300.5/0/12.5 -JM6.5i -P -Xc -I+a15+ne0.75 -K > $ps
-# Add shorelines
-gmt grdcontour geoid_02.grd -R -J -C1.0 -A2.0+f8p,0,black -Wthinner,dimgray -O -K >> $ps
-# Add grid
-gmt psbasemap -R -J \
-    --MAP_FRAME_AXES=WEsN \
-    --FORMAT_GEO_MAP=ddd:mm:ssF \
-    -Bpx4f2a2 -Bpyg4f2a2 -Bsxg4 -Bsyg2 \
-    --MAP_TITLE_OFFSET=0.8c \
-    --FONT_ANNOT_PRIMARY=7p,0,black \
-    --FONT_LABEL=7p,25,black \
-    --FONT_TITLE=13p,25,black \
-    -B+t"Geoid model (EGM-2008) of Venezuela and Trinidad and Tobago" -O -K >> $ps
-# Add legend
-gmt psscale -Dg286/-1.0+w16.5c/0.4c+h+o0.0/0i+ml+e -R -J -Ccolors.cpt \
-    -Bg2f0.2a4+l"Color scale '33_blue_red': colour tables of IDL from the KDE scientific plotting tool [256, discrete, RGB, 252 segments, -T-55/25]" \
-    -I0.2 -By+lm -O -K >> $ps
-# Add scale, directional rose
-gmt psbasemap -R -J \
-    --FONT=7p,0,black \
-    --FONT_ANNOT_PRIMARY=6p,0,black \
-    --MAP_TITLE_OFFSET=0.1c \
-    --MAP_ANNOT_OFFSET=0.1c \
-    -Lx14.7c/-2.3c+c50+w200k+l"Mercator projection. Scale (km)"+f \
-    -UBL/-5p/-65p -O -K >> $ps
-# Add coastlines, borders, rivers
-gmt pscoast -R -J -P -Ia/thinnest,blue -Na -N1/thick,brown -Wthick,darkslategray -Df -O -K >> $ps
-# Texts
-gmt pstext -R -J -N -O -K \
--F+jTL+f10p,21,darkred+jLB+a-0 >> $ps << EOF
-290.0 10.5 (Coro)
-EOF
-# Add GMT logo
-gmt logo -Dx7.0/-2.9+o0.1i/0.1i+w2c -O -K >> $ps
-# Add subtitle
-gmt pstext -R0/10/0/15 -JX10/10 -X0.1c -Y5.9c -N -O \
-    -F+f10p,25,black+jLB >> $ps << EOF
-3.0 13.6 World geoid image EGM2008 vertical datum 2.5 min resolution
-EOF
-# Convert to image file using GhostScript
-gmt psconvert Geoid_VE.ps -A1.0c -E720 -Tj -Z
-\end{lstlisting}
-
 Whilst GEBCO data were gathered in NetCDF format ($GEBCO\_2019.nc$), the geoid data needed to be converted first from the .adf format which was done by the following code of GMT: $'gmt grdconvert n00w90/w001001.adf geoid\_02.grd'.$ The data extent and range were examined by GDAL and interpreted for the color palette as follows: $'gmt makecpt -C33_blue\_red.cpt -T-55/25 > colors.cpt'.$ The geoid was modelled using the following code: $'gmt grdimage geoid\_02.grd -Ccolors.cpt -R286/300.5/0/12.5 -JM6.5i -P -Xc -I+a15+ne0.75 -K > \$ps'.$
-
-\begin{lstlisting}[language=bash, caption=\textbf{GMT code used for plotting Fig. \ref{fig5} (free-air gravity modelling)}]
-#!/bin/sh
-# Purpose: mapping free-air gravity anomaly of Venezuela
-# GMT modules: gmtset, gmtdefaults, img2grd, makecpt, grdimage, psscale, grdcontour, psbasemap, gmtlogo, psconvert, pscoast
-# http://soliton.vm.bytemark.co.uk/pub/cpt-city/pj/4/index.html
-# GMT set up
-gmt set FORMAT_GEO_MAP=dddF \
-    MAP_FRAME_PEN=dimgray \
-# Overwrite defaults of GMT
-gmtdefaults -D > .gmtdefaults
-gmt img2grd grav_27.1.img -R286/300.5/0/12.5 -Ggrav_VE.grd -T1 -I1 -E -S0.1 -V
-gdalinfo grav_VE.grd -stats
-# Minimum=-218.668, Maximum=942.457, Mean=5.694, StdDev=64.118
-# Generate a color palette table from grid
-gmt makecpt -Chaxby -T-200/200 > colors.cpt
-# Generate a file
-ps=Grav_VE.ps
-gmt grdimage grav_VE.grd -Ccolors.cpt -R286/300.5/0/12.5 -JM6.0i -P -I+a15+ne0.75 -Xc -K > $ps
-# Add isolines
-gmt grdcontour grav_VE.grd -R -J -C50 -A100 -Wthinner -O -K >> $ps
-# Add grid
-gmt psbasemap -R -J \
-    --MAP_FRAME_AXES=WEsN \
-    --FORMAT_GEO_MAP=ddd:mm:ssF \
-    -Bpx4f2a2 -Bpyg4f2a2 -Bsxg4 -Bsyg2 \
-    -B+t"Free-air gravity anomaly for Venezuela, Trinidad and Tobago" -O -K >> $ps 
-# Add legend
-gmt psscale -Dg286/-1.0+w15.0c/0.4c+h+o0.0/0i+ml+e -R -J -Ccolors.cpt \
-    --FONT_LABEL=7p,Helvetica,black \
-    --FONT_ANNOT_PRIMARY=7p,0,black \
-    --FONT_TITLE=8p,25,black \
-    -Bg50f5a50+l"Color scale 'haxby' B. Haxby's color scheme for geoid & gravity [C=RGB -T-200/200]" \
-    -I0.2 -By+l"mGal" -O -K >> $ps
-# Add scale, directional rose
-gmt psbasemap -R -J \
-    -Lx14.0c/-2.3c+c50+w200k+l"Mercator projection. Scale (km)"+f \
-    -UBL/-5p/-70p -O -K >> $ps
-# Add coastlines, borders, rivers
-gmt pscoast -R -J -P -Ia/thinnest,blue -Na -N1/thick,white -Wthin,darkslategray -Df -O -K >> $ps
-# Texts
-gmt pstext -R -J -N -O -K \
--F+jTL+f14p,32,darkgreen+jLB+a-330 >> $ps << EOF
-290.8 7.8 Los Llanos
-EOF
-# Add GMT logo
-gmt logo -Dx7.0/-2.9+o0.1i/0.1i+w2c -O -K >> $ps
-# Add subtitle
-gmt pstext -R0/10/0/15 -JX10/10 -X0.0c -Y4.8c -N -O \
-    -F+f10p,25,black+jLB >> $ps << EOF
-1.0 13.6 Global gravity grid from CryoSat-2 and Jason-1, 1 min resolution, SIO, NOAA, NGA.
-EOF
-# Convert to image file using GhostScript
-gmt psconvert Grav_VE.ps -A0.5c -E720 -Tj -Z
-\end{lstlisting}
 
 Geophysical data of gravity grids (Figure \ref{fig5} and \ref{fig6}) were acquired from available sources \cite{Sandwell}. The seismic data were downloaded from the IRIS database using spatial extent of the Venezuela, Trinidad and Tobago and surroundings, respectively (Figure \ref{fig7}). The gravity grids were also converted from the initial raw IMG format to the GRD format compatoble with the GMT as follows: $'gmt img2grd grav\_27.1.img -R286/300.5/0/12.5 -Ggrav\_VE.grd -T1 -I1 -E -S0.1 -V'$ (here for Fig. 5). The same procedure has been repeated for the Fig. 6 (vertical gradient of gravity) and followed the example of published work \cite{Lemenkova2021d}. The annotations have been added on all the maps using the 'pstext' module of GMT as in the following example: $'gmt pstext -R -J -N -O -K -F+f10p,0,black+jLB+a-0 >> \$ps << EOF 294.20 8.24 Ciudad Bolívar EOF'.$ The data were converted to ‘ngdc’ format, visualized by 'psxy' module and assessed for seismicity. 
 
-\begin{lstlisting}[language=bash, caption=\textbf{GMT code used for plotting Figure \ref{fig6} (vertical gradient of gravity modelling)}]
-#!/bin/sh
-# Purpose: geophysical mapping of Venezuela (vertical free-air gravity gradient)
-# GMT modules: gmtset, gmtdefaults, img2grd, makecpt, grdimage, psscale, grdcontour, psbasemap, gmtlogo, psconvert, pscoast
-# http://soliton.vm.bytemark.co.uk/pub/cpt-city/pj/4/index.html
-# GMT set up
-gmt set FORMAT_GEO_MAP=dddF \
-# Overwrite defaults of GMT
-gmtdefaults -D > .gmtdefaults
-gmt img2grd curv_27.1.img -R286/300.5/0/12.5 -Ggrav_v_VE.grd -T1 -I1 -E -S0.1 -V
-gdalinfo grav_v_VE.grd -stats
-# Minimum=-488.036, Maximum=870.350, Mean=0.358, StdDev=43.643
-# Generate a color palette table from grid
-gmt makecpt -Chaxby -T-100/100 > colors.cpt
-# Generate a file
-ps=Grav_VE_v.ps
-gmt grdimage grav_v_VE.grd -Ccolors.cpt -R286/300.5/0/12.5 -JM6.0i -P -I+a15+ne0.75 -Xc -K > $ps
-# Add isolines
-gmt grdcontour grav_v_VE.grd -R -J -C100 -Wthinnest -O -K >> $ps
-# Add grid
-gmt psbasemap -R -J \
-    --MAP_FRAME_AXES=WEsN \
-    --FORMAT_GEO_MAP=ddd:mm:ssF \
-    -Bpx4f2a2 -Bpyg4f2a2 -Bsxg4 -Bsyg2 \
-    -B+t"Vertical gravity gradient for Venezuela, Trinidad and Tobago" -O -K >> $ps  
-# Add legend
-gmt psscale -Dg286/-1.0+w15.0c/0.4c+h+o0.0/0i+ml+e -R -J -Ccolors.cpt \
-    -Bg25f2.5a25+l"Color scale 'haxby' B. Haxby's color scheme for geoid & gravity [C=RGB -T-200/200]" \
-    -I0.2 -By+l"mGal" -O -K >> $ps
-# Add scale, directional rose
-gmt psbasemap -R -J \
-    -Lx14.0c/-2.3c+c50+w200k+l"Mercator projection. Scale (km)"+f \
-    -UBL/-5p/-70p -O -K >> $ps
-# Add coastlines, borders, rivers
-gmt pscoast -R -J -P -Ia/thinnest,blue -Na -N1/thick,white -Wthin,darkslategray -Df -O -K >> $ps
-# Texts
-gmt pstext -R -J -N -O -K \
--F+jTL+f12p,21,white+jLB+a-315 >> $ps << EOF
-286.7 5.8 Los Andes
-EOF
-# Add GMT logo
-gmt logo -Dx7.0/-2.9+o0.1i/0.1i+w2c -O -K >> $ps
-# Add subtitle
-gmt pstext -R0/10/0/15 -JX10/10 -X0.0c -Y4.8c -N -O \
-    -F+f10p,25,black+jLB >> $ps << EOF
-1.0 13.6 Global gravity grid from CryoSat-2 and Jason-1, 1 min resolution, SIO, NOAA, NGA.
-EOF
-# Convert to image file using GhostScript
-gmt psconvert Grav_VE_v.ps -A0.5c -E720 -Tj -Z
-\end{lstlisting}
-
 The earthquakes on the Figure \ref{fig7} (map of seismicity) have been plotted using the 'psxy' module of GMT by the following code: $'gmt psxy -R -J quakes\_VE.ngdc -Wfaint -i4,3,6,6s0.05 -h3 -Scc -Csteps.cpt -O -K >> \$ps'.$ Here the ‘i4,3,6,6s0.05’ means the numbers of column in the table ($quakes\_VE.ngdc$) that was converted from the original CSV from the IRIS. The volcanoes were visualized by the following code: $‘gmt psxy -R -J volcanoes.gmt -St0.4c -Gred -Wthinnest -O -K >> \$ps’$. The complex legend showing the magnitude of events was plotted using the following code: $‘gmt pslegend -R -J -Dx1.5/-3.0+w17.8c+o-2.0/0.1c  -F+pthin+ithinner+gwhite -O -K << FIN >> \$ps H 10 Helvetica Seismicity: earthquakes magnitude (M) from \\1.9 to 7.3 N 9 S 0.3c c 0.3c red 0.01c 0.5c M (7.1-7.3) <...> FIN’.$
-
-\begin{lstlisting}[language=bash, caption=\textbf{GMT codes used for plotting Figure \ref{fig7} (seismic mapping)}]
-#!/bin/sh
-# Purpose: seismicity map of Venezuela (earthquake distribution according to the IRIS database (1997-2021) of seismic events)
-# GMT modules: gmtset, gmtdefaults, grdcut, makecpt, grdimage, psscale, grdcontour, psbasemap, gmtlogo, psconvert
-# http://soliton.vm.bytemark.co.uk/pub/cpt-city/wkp/shadowxfox/tn/colombia.png.index.html
-# GMT set up
-gmt set FORMAT_GEO_MAP=dddF 
-gmtdefaults -D > .gmtdefaults
-# Extract a topographic subset of Venezuela and surroundings:
-gmt grdcut ETOPO1_Ice_g_gmt4.grd -R286/300.5/0/12.5 -Gve_relief1.nc
-gmt grdcut GEBCO_2019.nc -R286/300.5/0/12.5 -Gve_relief.nc
-gdalinfo -stats ve_relief.nc
-# Min=-4947.963 Max=5535.625
-# Make color palette
-gmt makecpt -Ccolombia.cpt > pauline.cpt
-gmt makecpt -Cseis -T1.9/7.3/0.5 -Z > steps.cpt
-ps=Seis_VE.ps
-# Make raster image
-gmt grdimage ve_relief.nc -Cpauline.cpt -R286/300.5/0/12.5 -JM6.5i -I+a15+ne0.75 -Xc -P -K > $ps
-# Add legend
-gmt psscale -Dg286/-1.0+w16.5c/0.4c+h+o0.0/0i+ml+e -R -J -Cpauline.cpt \
-    -Bg500f50a500+l"Colormap..." \
-    -I0.2 -By+lm -O -K >> $ps
-# Add isolines
-gmt grdcontour ve_relief1.nc -R -J -C500 -Wthinnest,brown -O -K >> $ps
-# Add coastlines, borders, rivers
-gmt pscoast -R -J -P \
-    -Ia/thinner,blue -Na -N1/thickest,olivedrab1 -Wthin,lightcyan2 -Df -O -K >> $ps 
-# Add grid
-gmt psbasemap -R -J \
-    --MAP_FRAME_AXES=WEsN \
-    --FORMAT_GEO_MAP=ddd:mm:ssF \
-    -Bpx4f2a2 -Bpyg4f2a2 -Bsxg4 -Bsyg2 \
-    -B+t"Seismicity in Venezuela and Trinidad and Tobago: IRIS database (1997-2021)" -O -K >> $ps
-# Add scale, directional rose
-gmt psbasemap -R -J \
-    -Lx14.0c/-3.6c+c50+w200k+l"Mercator projection. Scale: km"+f \
-    -UBL/-5p/-110p -O -K >> $ps
-# Add earthquake points
-# separator in numbers of table: dot (.), not comma ! (British style)
-gmt psxy -R -J quakes_VE.ngdc -Wfaint -i4,3,6,6s0.05 -h3 -Scc -Csteps.cpt -O -K >> $ps
-# Add geological lines and points
-gmt psxy -R -J volcanoes.gmt -St0.4c -Gred -Wthinnest -O -K >> $ps
-# fabric and magnetic lineation picks fracture zones
-gmt psxy -R -J GSFML_SF_FZ_KM.gmt -Wthicker,goldenrod1 -O -K >> $ps
-gmt psxy -R -J GSFML_SF_FZ_RM.gmt -Wthicker,pink -O -K >> $ps
-gmt psxy -R -J ridge.gmt -Sf0.5c/0.15c+l+t -Wthick,red -Gyellow -O -K >> $ps
-gmt psxy -R -J ridge.gmt -Sc0.05c -Gred -Wthickest,red -O -K >> $ps
-# tectonic plates
-gmt psxy -R -J TP_Caribbean.txt -L -Wthickest,purple -O -K >> $ps
-gmt psxy -R -J TP_Cocos.txt -L -Wthickest,purple -O -K >> $ps
-gmt psxy -R -J TP_Nazca.txt -L -Wthickest,purple -O -K >> $ps
-gmt psxy -R -J TP_South_Am.txt -L -Wthickest,purple -O -K >> $ps
-# Texts
-gmt pstext -R -J -N -O -K \
--F+f10p,17,black+jLB+a-0 >> $ps << EOF
-293.20 10.58 Caracas
-EOF
-# Processed likewise for similar texts
-gmt pslegend -R -J -Dx1.5/-3.0+w17.8c+o-2.0/0.1c \
-    -F+pthin+ithinner+gwhite \
-    --FONT=8p,black -O -K << FIN >> $ps
-H 10 Helvetica Seismicity: earthquakes magnitude (M) from 1.9 to 7.3
-N 9
-S 0.3c c 0.3c red 0.01c 0.5c M (7.1-7.3)
-S 0.3c c 0.3c tomato 0.01c 0.5c M (6.4-7.0)
-S 0.3c c 0.3c orange 0.01c 0.5c M (5.6-6.3)
-S 0.3c c 0.3c yellow 0.01c 0.5c M (4.8-5.5)
-S 0.3c c 0.3c chartreuse1 0.01c 0.5c M (4.1-4.7)
-S 0.3c c 0.3c chartreuse1 0.01c 0.5c M (3.4-4.0)
-S 0.3c c 0.3c cyan3 0.01c 0.5c M (2.7-3.3)
-S 0.3c c 0.3c blue 0.01c 0.5c M (1.9-2.6)
-S 0.3c t 0.3c red 0.03c 0.5c Volcanoes
-FIN
-# Add GMT logo
-gmt logo -Dx7.0/-4.5+o0.1i/0.1i+w2c -O -K >> $ps
-# Add subtitle
-gmt pstext -R0/10/0/15 -JX10/10 -X0.5c -Y5.9c -N -O \
-    -F+f11p,25,black+jLB >> $ps << EOF
-1.0 13.6 DEM: SRTM/GEBCO, 15 arc sec grid. Earthquakes: IRIS Seismic Event Database
-EOF
-# Convert to image file using GhostScript
-gmt psconvert Seis_VE.ps -A1.7c -E720 -Tj -Z
-\end{lstlisting}
 
 The full algorithms of GMT codes are available in author’s GitHub repository: \\\href{https://github.com/paulinelemenkova/Mapping_Venezuela_GMT_Scripts}{https://github.com/paulinelemenkova/Mapping\_Venezuela\_GMT\_Scripts}. 
 
@@ -621,7 +291,344 @@ USGS & United States Geological Survey \\
 \end{tabular}}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Optional
+\appendixtitles{yes} % Leave argument "no" if all appendix headings stay EMPTY (then no dot is printed after "Appendix A"). If the appendix sections contain a heading then change the argument to "yes".
+\appendixstart
+\appendix
+\section[\appendixname~\thesection]{GMT scripts}
+\subsection[\appendixname~\thesubsection]{GMT script for topographic mapping}
 
+\begin{lstlisting}[language=bash, caption=\textbf{GMT code used for plotting Figure \ref{fig1} (topographic map)}]
+#!/bin/sh
+# Purpose: shaded relief grid raster map from the GEBCO dataset (here: Venezuela)
+# GMT modules: gmtset, gmtdefaults, grdcut, makecpt, grdimage, psscale, grdcontour, psbasemap, gmtlogo, psconvert
+# http://soliton.vm.bytemark.co.uk/pub/cpt-city/arendal/tn/arctic.png.index.html
+# GMT set up
+gmt set FORMAT_GEO_MAP=dddF \
+# Overwrite defaults of GMT
+gmtdefaults -D > .gmtdefaults
+#chsh -s /bin/bash
+chsh -s /bin/zsh
+gmt grdcut GEBCO_2019.nc -R286/300.5/0/12.5 -Gve_relief.nc
+gmt grdcut ETOPO1_Ice_g_gmt4.grd -R286/300.5/0/12.5 -Gve_relief1.nc
+gdalinfo ve_relief.nc -stats
+# Minimum=-4947.963, Maximum=5535.625, Mean=162.220, StdDev=788.097
+# create mask of vector layer from the DCW of country's polygon
+gmt pscoast -R286/300.5/0/12.5 -Dh -M -EVE > ve.txt
+# Make color palette
+gmt makecpt -Carctic.cpt > pauline.cpt
+# Generate a file
+ps=Topography_VE.ps
+# Make background transparent image
+gmt grdimage ve_relief.nc -Cpauline.cpt -R286/300.5/0/12.5 -JM6i -P -I+a15+ne0.75 -t20 -Xc -K > $ps
+# Add isolines
+gmt grdcontour ve_relief1.nc -R -J -C500 -W0.1p -O -K >> $ps
+# Add coastlines, borders, rivers
+gmt pscoast -R -J -P \
+    -Ia/thinner,blue -Na -N1/thickest,darkred -W0.1p -Df -O -K >> $ps
+# CLIPPING
+# 1. Start: clip the map by mask to only include country
+gmt psclip -R286/300.5/0/12.5 -JM6.0i ve.txt -O -K >> $ps
+# 2. create map within mask
+# Add raster image
+gmt grdimage ve_relief.nc -Cpauline.cpt -R286/300.5/0/12.5 -JM6.0i -I+a15+ne0.75 -Xc -P -O -K >> $ps
+# Add isolines
+gmt grdcontour ve_relief1.nc -R -J -C1000 -Wthinner,darkbrown -O -K >> $ps
+# Add coastlines, borders, rivers
+gmt pscoast -R -J \
+    -Ia/thinner,blue -Na -N1/thicker,tomato -W0.1p -Df -O -K >> $ps
+# 3: Undo the clipping
+gmt psclip -C -O -K >> $ps
+# Add color barlegend
+gmt psscale -Dg286/-1.0+w15.2c/0.4c+h+o0.0/0i+ml -R -J -Cpauline.cpt \
+    -Bg500a1000f100+l"Color scale 'arctic': global bathymetry/topography relief [-5000 to 4000, mixed, RGB, 110 segments]" \
+    -I0.2 -By+lm -O -K >> $ps    
+# Add grid
+gmt psbasemap -R -J \
+    --MAP_FRAME_AXES=WEsN \
+    --FORMAT_GEO_MAP=ddd:mm:ssF \
+    -Bpx4f2a2 -Bpyg4f2a2 -Bsxg4 -Bsyg2 \
+    -B+t"Topographic map of Venezuela, Trinidad and Tobago" -O -K >> $ps    
+# Add scalebar, directional rose
+gmt psbasemap -R -J \
+    -Lx12.7c/-2.2c+c50+w200k+l"Mercator projection. Scale: km"+f \
+    -UBL/-5p/-65p -O -K >> $ps
+# Texts
+gmt pstext -R -J -N -O -K \
+-F+jTL+f10p,21,darkred+jLB+a-0 -Gwhite@60 >> $ps << EOF
+290.1 11.8 Peninsula
+EOF
+# insert map
+# Countries codes: ISO 3166-1 alpha-2. Continent codes AF (Africa), AN (Antarctica), AS (Asia), EU (Europe), OC (Oceania), NA (North America), or SA (South America). -EEU+ggrey
+gmt psbasemap -R -J -O -K -DjBL+w3.3c+stmp >> $ps
+read x0 y0 w h < tmp
+gmt pscoast --MAP_GRID_PEN_PRIMARY=thinner,white -Rg -JG293/6N/$w -Da -Gbrown -A5000 -Bg -Wfaint -ESA+gpeachpuff -EVE+gyellow -Slightsteelblue3 -O -K -X$x0 -Y$y0 >> $ps
+#gmt pscoast -Rg -JG12/5N/$w -Da -Gbrown -A5000 -Bg -Wfaint -ECM+gbisque -O -K -X$x0 -Y$y0 >> $ps
+gmt psxy -R -J -O -K -T  -X-${x0} -Y-${y0} >> $ps
+# Add GMT logo
+gmt logo -Dx6.2/-2.9+o0.1i/0.1i+w2c -O -K >> $ps
+# Add subtitle
+gmt pstext -R0/10/0/15 -JX10/10 -X0.5c -Y5.0c -N -O \
+    -F+f10p,Helvetica,black+jLB >> $ps << EOF
+2.3 13.3 SRTM/GEBCO 15 arc sec resolution global terrain model grid
+EOF
+# Convert to image file using GhostScript
+gmt psconvert Topography_VE.ps -A0.5c -E720 -Tj -Z
+\end{lstlisting}
+
+\subsection[\appendixname~\thesubsection]{GMT script for geoid mapping}
+\begin{lstlisting}[language=bash, caption=\textbf{GMT code used for plotting Figure \ref{fig4} (geoid modelling)}]
+#!/bin/sh
+# Purpose: geoid of Venezuela
+# GMT modules: gmtset, gmtdefaults, grdcut, makecpt, grdimage, psscale, grdcontour, psbasemap, gmtlogo, psconvert
+# http://soliton.vm.bytemark.co.uk/pub/cpt-city/kst/tn/33_blue_red.png.index.html
+# GMT set up
+gmt set FORMAT_GEO_MAP=dddF \
+# Overwrite defaults of GMT
+gmtdefaults -D > .gmtdefaults
+gmt grdconvert n00w90/w001001.adf geoid_02.grd
+gdalinfo geoid_02.grd -stats
+# Minimum=-70.856, Maximum=32.958, Mean=-24.768, StdDev=19.081
+# Generate a color palette table from grid
+gmt makecpt -C33_blue_red.cpt -T-55/25 > colors.cpt
+# Generate a file
+ps=Geoid_VE.ps
+gmt grdimage geoid_02.grd -Ccolors.cpt -R286/300.5/0/12.5 -JM6.5i -P -Xc -I+a15+ne0.75 -K > $ps
+# Add shorelines
+gmt grdcontour geoid_02.grd -R -J -C1.0 -A2.0+f8p,0,black -Wthinner,dimgray -O -K >> $ps
+# Add grid
+gmt psbasemap -R -J \
+    --MAP_FRAME_AXES=WEsN \
+    --FORMAT_GEO_MAP=ddd:mm:ssF \
+    -Bpx4f2a2 -Bpyg4f2a2 -Bsxg4 -Bsyg2 \
+    --MAP_TITLE_OFFSET=0.8c \
+    --FONT_ANNOT_PRIMARY=7p,0,black \
+    --FONT_LABEL=7p,25,black \
+    --FONT_TITLE=13p,25,black \
+    -B+t"Geoid model (EGM-2008) of Venezuela and Trinidad and Tobago" -O -K >> $ps
+# Add legend
+gmt psscale -Dg286/-1.0+w16.5c/0.4c+h+o0.0/0i+ml+e -R -J -Ccolors.cpt \
+    -Bg2f0.2a4+l"Color scale '33_blue_red': colour tables of IDL from the KDE scientific plotting tool [256, discrete, RGB, 252 segments, -T-55/25]" \
+    -I0.2 -By+lm -O -K >> $ps
+# Add scale, directional rose
+gmt psbasemap -R -J \
+    --FONT=7p,0,black \
+    --FONT_ANNOT_PRIMARY=6p,0,black \
+    --MAP_TITLE_OFFSET=0.1c \
+    --MAP_ANNOT_OFFSET=0.1c \
+    -Lx14.7c/-2.3c+c50+w200k+l"Mercator projection. Scale (km)"+f \
+    -UBL/-5p/-65p -O -K >> $ps
+# Add coastlines, borders, rivers
+gmt pscoast -R -J -P -Ia/thinnest,blue -Na -N1/thick,brown -Wthick,darkslategray -Df -O -K >> $ps
+# Texts
+gmt pstext -R -J -N -O -K \
+-F+jTL+f10p,21,darkred+jLB+a-0 >> $ps << EOF
+290.0 10.5 (Coro)
+EOF
+# Add GMT logo
+gmt logo -Dx7.0/-2.9+o0.1i/0.1i+w2c -O -K >> $ps
+# Add subtitle
+gmt pstext -R0/10/0/15 -JX10/10 -X0.1c -Y5.9c -N -O \
+    -F+f10p,25,black+jLB >> $ps << EOF
+3.0 13.6 World geoid image EGM2008 vertical datum 2.5 min resolution
+EOF
+# Convert to image file using GhostScript
+gmt psconvert Geoid_VE.ps -A1.0c -E720 -Tj -Z
+\end{lstlisting}
+
+\subsection[\appendixname~\thesubsection]{GMT script for free-air gravity mapping}
+\begin{lstlisting}[language=bash, caption=\textbf{GMT code used for plotting Fig. \ref{fig5} (free-air gravity modelling)}]
+#!/bin/sh
+# Purpose: mapping free-air gravity anomaly of Venezuela
+# GMT modules: gmtset, gmtdefaults, img2grd, makecpt, grdimage, psscale, grdcontour, psbasemap, gmtlogo, psconvert, pscoast
+# http://soliton.vm.bytemark.co.uk/pub/cpt-city/pj/4/index.html
+# GMT set up
+gmt set FORMAT_GEO_MAP=dddF \
+    MAP_FRAME_PEN=dimgray \
+# Overwrite defaults of GMT
+gmtdefaults -D > .gmtdefaults
+gmt img2grd grav_27.1.img -R286/300.5/0/12.5 -Ggrav_VE.grd -T1 -I1 -E -S0.1 -V
+gdalinfo grav_VE.grd -stats
+# Minimum=-218.668, Maximum=942.457, Mean=5.694, StdDev=64.118
+# Generate a color palette table from grid
+gmt makecpt -Chaxby -T-200/200 > colors.cpt
+# Generate a file
+ps=Grav_VE.ps
+gmt grdimage grav_VE.grd -Ccolors.cpt -R286/300.5/0/12.5 -JM6.0i -P -I+a15+ne0.75 -Xc -K > $ps
+# Add isolines
+gmt grdcontour grav_VE.grd -R -J -C50 -A100 -Wthinner -O -K >> $ps
+# Add grid
+gmt psbasemap -R -J \
+    --MAP_FRAME_AXES=WEsN \
+    --FORMAT_GEO_MAP=ddd:mm:ssF \
+    -Bpx4f2a2 -Bpyg4f2a2 -Bsxg4 -Bsyg2 \
+    -B+t"Free-air gravity anomaly for Venezuela, Trinidad and Tobago" -O -K >> $ps 
+# Add legend
+gmt psscale -Dg286/-1.0+w15.0c/0.4c+h+o0.0/0i+ml+e -R -J -Ccolors.cpt \
+    --FONT_LABEL=7p,Helvetica,black \
+    --FONT_ANNOT_PRIMARY=7p,0,black \
+    --FONT_TITLE=8p,25,black \
+    -Bg50f5a50+l"Color scale 'haxby' B. Haxby's color scheme for geoid & gravity [C=RGB -T-200/200]" \
+    -I0.2 -By+l"mGal" -O -K >> $ps
+# Add scale, directional rose
+gmt psbasemap -R -J \
+    -Lx14.0c/-2.3c+c50+w200k+l"Mercator projection. Scale (km)"+f \
+    -UBL/-5p/-70p -O -K >> $ps
+# Add coastlines, borders, rivers
+gmt pscoast -R -J -P -Ia/thinnest,blue -Na -N1/thick,white -Wthin,darkslategray -Df -O -K >> $ps
+# Texts
+gmt pstext -R -J -N -O -K \
+-F+jTL+f14p,32,darkgreen+jLB+a-330 >> $ps << EOF
+290.8 7.8 Los Llanos
+EOF
+# Add GMT logo
+gmt logo -Dx7.0/-2.9+o0.1i/0.1i+w2c -O -K >> $ps
+# Add subtitle
+gmt pstext -R0/10/0/15 -JX10/10 -X0.0c -Y4.8c -N -O \
+    -F+f10p,25,black+jLB >> $ps << EOF
+1.0 13.6 Global gravity grid from CryoSat-2 and Jason-1, 1 min resolution, SIO, NOAA, NGA.
+EOF
+# Convert to image file using GhostScript
+gmt psconvert Grav_VE.ps -A0.5c -E720 -Tj -Z
+\end{lstlisting}
+
+\subsection[\appendixname~\thesubsection]{GMT script for vertical gradient of gravity}
+\begin{lstlisting}[language=bash, caption=\textbf{GMT code used for plotting Figure \ref{fig6} (vertical gradient of gravity modelling)}]
+#!/bin/sh
+# Purpose: geophysical mapping of Venezuela (vertical free-air gravity gradient)
+# GMT modules: gmtset, gmtdefaults, img2grd, makecpt, grdimage, psscale, grdcontour, psbasemap, gmtlogo, psconvert, pscoast
+# http://soliton.vm.bytemark.co.uk/pub/cpt-city/pj/4/index.html
+# GMT set up
+gmt set FORMAT_GEO_MAP=dddF \
+# Overwrite defaults of GMT
+gmtdefaults -D > .gmtdefaults
+gmt img2grd curv_27.1.img -R286/300.5/0/12.5 -Ggrav_v_VE.grd -T1 -I1 -E -S0.1 -V
+gdalinfo grav_v_VE.grd -stats
+# Minimum=-488.036, Maximum=870.350, Mean=0.358, StdDev=43.643
+# Generate a color palette table from grid
+gmt makecpt -Chaxby -T-100/100 > colors.cpt
+# Generate a file
+ps=Grav_VE_v.ps
+gmt grdimage grav_v_VE.grd -Ccolors.cpt -R286/300.5/0/12.5 -JM6.0i -P -I+a15+ne0.75 -Xc -K > $ps
+# Add isolines
+gmt grdcontour grav_v_VE.grd -R -J -C100 -Wthinnest -O -K >> $ps
+# Add grid
+gmt psbasemap -R -J \
+    --MAP_FRAME_AXES=WEsN \
+    --FORMAT_GEO_MAP=ddd:mm:ssF \
+    -Bpx4f2a2 -Bpyg4f2a2 -Bsxg4 -Bsyg2 \
+    -B+t"Vertical gravity gradient for Venezuela, Trinidad and Tobago" -O -K >> $ps  
+# Add legend
+gmt psscale -Dg286/-1.0+w15.0c/0.4c+h+o0.0/0i+ml+e -R -J -Ccolors.cpt \
+    -Bg25f2.5a25+l"Color scale 'haxby' B. Haxby's color scheme for geoid & gravity [C=RGB -T-200/200]" \
+    -I0.2 -By+l"mGal" -O -K >> $ps
+# Add scale, directional rose
+gmt psbasemap -R -J \
+    -Lx14.0c/-2.3c+c50+w200k+l"Mercator projection. Scale (km)"+f \
+    -UBL/-5p/-70p -O -K >> $ps
+# Add coastlines, borders, rivers
+gmt pscoast -R -J -P -Ia/thinnest,blue -Na -N1/thick,white -Wthin,darkslategray -Df -O -K >> $ps
+# Texts
+gmt pstext -R -J -N -O -K \
+-F+jTL+f12p,21,white+jLB+a-315 >> $ps << EOF
+286.7 5.8 Los Andes
+EOF
+# Add GMT logo
+gmt logo -Dx7.0/-2.9+o0.1i/0.1i+w2c -O -K >> $ps
+# Add subtitle
+gmt pstext -R0/10/0/15 -JX10/10 -X0.0c -Y4.8c -N -O \
+    -F+f10p,25,black+jLB >> $ps << EOF
+1.0 13.6 Global gravity grid from CryoSat-2 and Jason-1, 1 min resolution, SIO, NOAA, NGA.
+EOF
+# Convert to image file using GhostScript
+gmt psconvert Grav_VE_v.ps -A0.5c -E720 -Tj -Z
+\end{lstlisting}
+
+\subsection[\appendixname~\thesubsection]{GMT script for seismic mapping}
+\begin{lstlisting}[language=bash, caption=\textbf{GMT codes used for plotting Figure \ref{fig7} (seismic mapping)}]
+#!/bin/sh
+# Purpose: seismicity map of Venezuela (earthquake distribution according to the IRIS database (1997-2021) of seismic events)
+# GMT modules: gmtset, gmtdefaults, grdcut, makecpt, grdimage, psscale, grdcontour, psbasemap, gmtlogo, psconvert
+# http://soliton.vm.bytemark.co.uk/pub/cpt-city/wkp/shadowxfox/tn/colombia.png.index.html
+# GMT set up
+gmt set FORMAT_GEO_MAP=dddF 
+gmtdefaults -D > .gmtdefaults
+# Extract a topographic subset of Venezuela and surroundings:
+gmt grdcut ETOPO1_Ice_g_gmt4.grd -R286/300.5/0/12.5 -Gve_relief1.nc
+gmt grdcut GEBCO_2019.nc -R286/300.5/0/12.5 -Gve_relief.nc
+gdalinfo -stats ve_relief.nc
+# Min=-4947.963 Max=5535.625
+# Make color palette
+gmt makecpt -Ccolombia.cpt > pauline.cpt
+gmt makecpt -Cseis -T1.9/7.3/0.5 -Z > steps.cpt
+ps=Seis_VE.ps
+# Make raster image
+gmt grdimage ve_relief.nc -Cpauline.cpt -R286/300.5/0/12.5 -JM6.5i -I+a15+ne0.75 -Xc -P -K > $ps
+# Add legend
+gmt psscale -Dg286/-1.0+w16.5c/0.4c+h+o0.0/0i+ml+e -R -J -Cpauline.cpt \
+    -Bg500f50a500+l"Colormap..." \
+    -I0.2 -By+lm -O -K >> $ps
+# Add isolines
+gmt grdcontour ve_relief1.nc -R -J -C500 -Wthinnest,brown -O -K >> $ps
+# Add coastlines, borders, rivers
+gmt pscoast -R -J -P \
+    -Ia/thinner,blue -Na -N1/thickest,olivedrab1 -Wthin,lightcyan2 -Df -O -K >> $ps 
+# Add grid
+gmt psbasemap -R -J \
+    --MAP_FRAME_AXES=WEsN \
+    --FORMAT_GEO_MAP=ddd:mm:ssF \
+    -Bpx4f2a2 -Bpyg4f2a2 -Bsxg4 -Bsyg2 \
+    -B+t"Seismicity in Venezuela and Trinidad and Tobago: IRIS database (1997-2021)" -O -K >> $ps
+# Add scale, directional rose
+gmt psbasemap -R -J \
+    -Lx14.0c/-3.6c+c50+w200k+l"Mercator projection. Scale: km"+f \
+    -UBL/-5p/-110p -O -K >> $ps
+# Add earthquake points
+# separator in numbers of table: dot (.), not comma ! (British style)
+gmt psxy -R -J quakes_VE.ngdc -Wfaint -i4,3,6,6s0.05 -h3 -Scc -Csteps.cpt -O -K >> $ps
+# Add geological lines and points
+gmt psxy -R -J volcanoes.gmt -St0.4c -Gred -Wthinnest -O -K >> $ps
+# fabric and magnetic lineation picks fracture zones
+gmt psxy -R -J GSFML_SF_FZ_KM.gmt -Wthicker,goldenrod1 -O -K >> $ps
+gmt psxy -R -J GSFML_SF_FZ_RM.gmt -Wthicker,pink -O -K >> $ps
+gmt psxy -R -J ridge.gmt -Sf0.5c/0.15c+l+t -Wthick,red -Gyellow -O -K >> $ps
+gmt psxy -R -J ridge.gmt -Sc0.05c -Gred -Wthickest,red -O -K >> $ps
+# tectonic plates
+gmt psxy -R -J TP_Caribbean.txt -L -Wthickest,purple -O -K >> $ps
+gmt psxy -R -J TP_Cocos.txt -L -Wthickest,purple -O -K >> $ps
+gmt psxy -R -J TP_Nazca.txt -L -Wthickest,purple -O -K >> $ps
+gmt psxy -R -J TP_South_Am.txt -L -Wthickest,purple -O -K >> $ps
+# Texts
+gmt pstext -R -J -N -O -K \
+-F+f10p,17,black+jLB+a-0 >> $ps << EOF
+293.20 10.58 Caracas
+EOF
+# Processed likewise for similar texts
+gmt pslegend -R -J -Dx1.5/-3.0+w17.8c+o-2.0/0.1c \
+    -F+pthin+ithinner+gwhite \
+    --FONT=8p,black -O -K << FIN >> $ps
+H 10 Helvetica Seismicity: earthquakes magnitude (M) from 1.9 to 7.3
+N 9
+S 0.3c c 0.3c red 0.01c 0.5c M (7.1-7.3)
+S 0.3c c 0.3c tomato 0.01c 0.5c M (6.4-7.0)
+S 0.3c c 0.3c orange 0.01c 0.5c M (5.6-6.3)
+S 0.3c c 0.3c yellow 0.01c 0.5c M (4.8-5.5)
+S 0.3c c 0.3c chartreuse1 0.01c 0.5c M (4.1-4.7)
+S 0.3c c 0.3c chartreuse1 0.01c 0.5c M (3.4-4.0)
+S 0.3c c 0.3c cyan3 0.01c 0.5c M (2.7-3.3)
+S 0.3c c 0.3c blue 0.01c 0.5c M (1.9-2.6)
+S 0.3c t 0.3c red 0.03c 0.5c Volcanoes
+FIN
+# Add GMT logo
+gmt logo -Dx7.0/-4.5+o0.1i/0.1i+w2c -O -K >> $ps
+# Add subtitle
+gmt pstext -R0/10/0/15 -JX10/10 -X0.5c -Y5.9c -N -O \
+    -F+f11p,25,black+jLB >> $ps << EOF
+1.0 13.6 DEM: SRTM/GEBCO, 15 arc sec grid. Earthquakes: IRIS Seismic Event Database
+EOF
+# Convert to image file using GhostScript
+gmt psconvert Seis_VE.ps -A1.7c -E720 -Tj -Z
+\end{lstlisting}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%s%%%%%%%
 \begin{adjustwidth}{-\extralength}{0cm}
